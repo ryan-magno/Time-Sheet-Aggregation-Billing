@@ -123,12 +123,18 @@ The **main orchestrator** with a **dual-trigger** design.
 5. Validate & clean data (Step 3) → **log rejections to Audit**
 6. Call **Sub-WF B** (Contract Data Extraction) → returns contract terms → **only if `human_verified = true`**
 7. Group hours by resource (Step 5)
-8. Run 4 discrepancy checks (Step 6) → **log findings to Audit**
+8. **Run 4 discrepancy checks** (Step 6) → **log findings to Audit**
+   - *Rate/Max Hours Check*
+   - *Total Hours Reconciliation (Billable + Non-billable = Monthly Available)*
+   - *Contract Allocation Check (160 hrs/month limit)*
+   - *Monthly Hours Log Check (Overtime requires 30% premium)*
 9. **Branch:**
    - ✅ No issues → Compute totals (Step 7) → Call **Sub-WF C** (Invoice Generation)
    - ❌ Issues found → Trigger **Workflow 3** (Discrepancy Resolution), pause this client
 10. Approval flow (Step 11) → auto or **webhook-button-based** manual (not email reply parsing)
 11. Send to client (Step 12) → Gmail with attachments
+    - *Subject:* `Exist Billing ending [billing period]`
+    - *Attachments:* Client Billing report, Contract/SOW PDF, Non-billable hours report, Consolidated report
 12. Log in Odoo
 13. Update billing status to `INVOICE_SENT` + update `Next Billing Date` in Contract Registry
 14. **Release per-client processing lock**
